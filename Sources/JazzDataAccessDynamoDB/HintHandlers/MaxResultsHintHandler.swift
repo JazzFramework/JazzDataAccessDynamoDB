@@ -1,7 +1,7 @@
 import JazzDataAccess;
 
-public final class MaxResultsHintHandler<TResource: Storable>: BaseHintHandler<TResource, DynamoDBQuery<TResource>, MaxResultsHint> {
-    public override init() {
+internal class MaxResultsHintHandler<TResource: Storable>: BaseHintHandler<TResource, DynamoDBQuery<TResource>, MaxResultsHint> {
+    internal override init() {
         super.init();
     }
 

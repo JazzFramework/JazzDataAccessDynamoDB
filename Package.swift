@@ -25,6 +25,8 @@ let package = Package(
         .target(
             name: "JazzDataAccessDynamoDB",
             dependencies: [
+                .product(name: "JazzConfiguration", package: "Jazz"),
+                .product(name: "JazzCore", package: "Jazz"),
                 .product(name: "JazzDataAccess", package: "Jazz"),
 
                 .product(name: "AWSDynamoDB", package: "aws-sdk-swift"),
