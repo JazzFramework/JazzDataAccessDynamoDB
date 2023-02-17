@@ -16,7 +16,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/JazzFramework/Jazz.git", from: "0.0.8"),
-        .package(url: "https://github.com/awslabs/aws-sdk-swift", from: "0.9.2"),
+
+        .package(url: "https://github.com/awslabs/aws-sdk-swift", from: "0.10.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
