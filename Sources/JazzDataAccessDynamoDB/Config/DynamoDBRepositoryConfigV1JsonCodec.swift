@@ -16,14 +16,16 @@ internal class DynamoDBRepositoryConfigV1JsonCodec: JsonCodec<DynamoDBRepository
     }
 
     public override func encodeJson(data: DynamoDBRepositoryConfig) async -> JsonObject {
-        return JsonObjectBuilder()
-            .with("region", property: JsonProperty(withData: data.region))
-            .build();
+        return JsonObjectBuilder().build();
     }
 
     public override func decodeJson(data: JsonObject) async -> DynamoDBRepositoryConfig? {
         let region: JsonProperty = data["region"] as? JsonProperty ?? JsonProperty.Empty;
+        let endpoint: JsonProperty = data["endpoint"] as? JsonProperty ?? JsonProperty.Empty;
 
-        return DynamoDBRepositoryConfig(region: region.getString());
+        return DynamoDBRepositoryConfig(
+            region: region.getString(),
+            endpoint: endpoint.getString()
+        );
     }
 }

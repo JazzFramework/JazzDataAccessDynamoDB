@@ -6,8 +6,8 @@ internal final class IdsQueryCriterionHandler<TResource: Storable>: BaseCriterio
     }
 
     public override final func process(for query: DynamoDBQuery<TResource>, with criterion: IdsQueryCriterion) {
-        if query.query.filterExpression == nil {
-            query.query.filterExpression = "";
+        if query.input.filterExpression == nil {
+            query.input.filterExpression = "";
         }
     }
 }

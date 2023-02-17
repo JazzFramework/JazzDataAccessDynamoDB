@@ -29,6 +29,7 @@ let package = Package(
                 .product(name: "JazzCore", package: "Jazz"),
                 .product(name: "JazzDataAccess", package: "Jazz"),
 
+                .product(name: "AWSClientRuntime", package: "aws-sdk-swift"),
                 .product(name: "AWSDynamoDB", package: "aws-sdk-swift"),
             ]),
         .testTarget(

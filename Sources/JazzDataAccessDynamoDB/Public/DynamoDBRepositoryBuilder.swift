@@ -51,7 +51,6 @@ public final class DynamoDBRepositoryBuilder<TResource: Storable> {
             );
         }
 
-        //TODO: Error
-        throw DataAccessErrors.notFound(reason: "");
+        throw DynamoDBErrors.missingDependancy;
     }
 }

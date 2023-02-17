@@ -1,3 +1,4 @@
+import AWSClientRuntime;
 import AWSDynamoDB;
 import ClientRuntime;
 
@@ -19,22 +20,18 @@ internal final class DynamoDBRepository<TResource: Storable>: Repository<TResour
         hintProcessor: HintProcessor<TResource>
     ) async throws {        
         guard let config: DynamoDBRepositoryConfig = await configuration.fetch() else {
-            //TODO: Change error
-            throw DataAccessErrors.notFound(reason: "Could not read updated resource.");
+            throw DynamoDBErrors.missingConfig;
         }
+
+        var dynamoDBConfig: DynamoDBClientConfigurationProtocol = try await DynamoDBClient.DynamoDBClientConfiguration();
+        dynamoDBConfig.region = config.region;
+        dynamoDBConfig.endpoint = config.endpoint;
 
         self.delegate = delegate;
         self.criterionProcessor = criterionProcessor;
         self.hintProcessor = hintProcessor;
 
-        self.dynamoDbClient = try DynamoDBClient(
-            //credentialsProvider: nil,
-            //endpointResolver: nil,
-            region: config.region
-            //regionResolver: nil,
-            //signingRegion: nil,
-            //runtimeConfig: DefaultSDKRuntimeConfiguration()
-        );
+        self.dynamoDbClient = DynamoDBClient(config: dynamoDBConfig);
 
         super.init();
     }
@@ -46,22 +43,19 @@ internal final class DynamoDBRepository<TResource: Storable>: Repository<TResour
 
         try hintProcessor.handle(for: query, with: hints);
 
-        let result: QueryOutputResponse = try await dynamoDbClient.query(input: query.toQuery());
+        let result: QueryOutputResponse = try await dynamoDbClient.query(input: query.input);
+
+        var results: [TResource] = [];
 
         if let items = result.items {
-            var results: [TResource] = [];
-
             for item in items {
                 if let resource = delegate.getResource(item) {
                     results.append(resource);
                 }
             }
-
-            return results;
         }
 
-        //TODO: Update error
-        throw DataAccessErrors.notFound(reason: "Could not read updated resource.");
+        return results;
     }
 
     public final override func create(_ models: [TResource], with hints: [QueryHint]) async throws -> [TResource] {

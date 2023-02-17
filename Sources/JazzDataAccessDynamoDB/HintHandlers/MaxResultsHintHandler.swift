@@ -6,6 +6,6 @@ internal class MaxResultsHintHandler<TResource: Storable>: BaseHintHandler<TReso
     }
 
     public override final func process(for query: DynamoDBQuery<TResource>, with hint: MaxResultsHint) {
-        query.query.limit = hint.getCount();
+        query.input.limit = hint.getCount();
     }
 }
