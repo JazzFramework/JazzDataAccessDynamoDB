@@ -6,6 +6,6 @@ public final class MaxResultsHintHandler<TResource: Storable>: BaseHintHandler<T
     }
 
     public override final func process(for query: DynamoDBQuery<TResource>, with hint: MaxResultsHint) {
-        //TODO
+        query.query.limit = hint.getCount();
     }
 }

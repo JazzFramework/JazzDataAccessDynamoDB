@@ -1,29 +1,15 @@
-import Foundation;
-
 import AWSDynamoDB;
-import ClientRuntime;
-import AWSClientRuntime;
 
 import JazzDataAccess;
 
-internal extension Array {
-    func chunked(into size: Int) -> [[Element]] {
-        return stride(from: 0, to: count, by: size).map {
-            Array(self[$0 ..< Swift.min($0 + size, count)]);
-        };
-    }
-}
-
-//TODO: Delegate + Error Handling
+//TODO: Error Handling
 public final class DynamoDBRepository<TResource: Storable>: Repository<TResource> {
-    private final let criterionProcessor: CriterionProcessor<TResource>;
-    private final let hintProcessor: HintProcessor<TResource>;
+    private final let delegate: DynamoDBRepositoryDelegate<TResource>;
 
     private final let dynamoDbClient: DynamoDBClientProtocol;
 
-    public init(criterionProcessor: CriterionProcessor<TResource>, hintProcessor: HintProcessor<TResource>) {        
-        self.criterionProcessor = criterionProcessor;
-        self.hintProcessor = hintProcessor;
+    public init(delegate: DynamoDBRepositoryDelegate<TResource>) {        
+        self.delegate = delegate;
 
         self.dynamoDbClient = try! DynamoDBClient(region: "us-east-1");
 
@@ -83,26 +69,26 @@ public final class DynamoDBRepository<TResource: Storable>: Repository<TResource
         }
     }
 
-    //TODO
     public final override func get(for criteria: [QueryCriterion], with hints: [QueryHint]) async throws -> [TResource] {
         let query: DynamoDBQuery<TResource> = getQuery();
 
-        try criterionProcessor.handle(for: query, with: criteria);
+        try getCriterionProcessor().handle(for: query, with: criteria);
 
-        try hintProcessor.handle(for: query, with: hints);
+        try getHintProcessor().handle(for: query, with: hints);
 
-        let result: QueryOutputResponse = try await dynamoDbClient.query(input: QueryInput());
+        let result: QueryOutputResponse = try await dynamoDbClient.query(input: query.toQuery());
 
         if let items = result.items {
+            var results: [TResource] = [];
+
             for item in items {
-                var results: [TResource] = [];
 
                 if let resource = getResource(item) {
                     results.append(resource);
                 }
-
-                return results;
             }
+
+            return results;
         }
 
         //TODO: Update error
@@ -121,25 +107,24 @@ public final class DynamoDBRepository<TResource: Storable>: Repository<TResource
         return result;
     }
 
-    //TODO: Delegate
+    private final func getCriterionProcessor() -> CriterionProcessor<TResource> {
+        return delegate.getCriterionProcessor();
+    }
+
+    private final func getHintProcessor() -> HintProcessor<TResource> {
+        return delegate.getHintProcessor();
+    }
+
     private final func getTableName() -> String {
-        return "nameOfTable";
+        return delegate.getTableName();
     }
 
-    //TODO: Delegate
     private final func getItemAttributes(_ model: TResource) -> [String: DynamoDBClientTypes.AttributeValue] {
-        return [
-            "id": DynamoDBClientTypes.AttributeValue.s("keyVal"),
-            "key": DynamoDBClientTypes.AttributeValue.s("keyVal"),
-            "songTitle": DynamoDBClientTypes.AttributeValue.s("titleOfSong"),
-            "albumTitle": DynamoDBClientTypes.AttributeValue.s("titleOfAlbum"),
-            "awards": DynamoDBClientTypes.AttributeValue.s("awardVal")
-        ];
+        return delegate.getItemAttributes(model);
     }
 
-    //TODO: Delegate
     private final func getResource(_ item: [String: DynamoDBClientTypes.AttributeValue]) -> TResource? {
-        return nil;
+        return delegate.getResource(item);
     }
 
     private func getQuery() ->  DynamoDBQuery<TResource> {
