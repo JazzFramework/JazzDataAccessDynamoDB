@@ -3,7 +3,6 @@ import JazzCore;
 import JazzConfiguration;
 
 public final class DynamoDBInitializer: Initializer {
-
     public required init() {}
 
     public override final func initialize(for app: App, with configurationBuilder: ConfigurationBuilder) throws {

@@ -1,16 +1,15 @@
+import AWSDynamoDB;
+
 import JazzConfiguration;
 import JazzDataAccess;
 
 public final class DynamoDBRepositoryBuilder<TResource: Storable> {
     private var configuration: Configuration?;
-
     private var delegate: DynamoDBRepositoryDelegate<TResource>?;
-
     private var criterionHandlers: [CriterionHandler<TResource>] = [
         IdQueryCriterionHandler<TResource>(),
         IdsQueryCriterionHandler<TResource>()
     ];
-
     private var hintHandlers: [HintHandler<TResource>] = [
         MaxResultsHintHandler<TResource>()
     ];
@@ -43,8 +42,17 @@ public final class DynamoDBRepositoryBuilder<TResource: Storable> {
 
     public final func build() async throws -> Repository<TResource> {
         if let configuration = configuration, let delegate = delegate {
+            guard let config: DynamoDBRepositoryConfig = await configuration.fetch() else {
+                throw DynamoDBErrors.missingConfig;
+            }
+
+            var dynamoDBConfig: DynamoDBClientConfigurationProtocol = try await DynamoDBClient.DynamoDBClientConfiguration();
+
+            dynamoDBConfig.region = config.region;
+            dynamoDBConfig.endpoint = config.endpoint;
+
             return try await DynamoDBRepository<TResource>(
-                configuration: configuration,
+                client: DynamoDBClient(config: dynamoDBConfig),
                 delegate: delegate,
                 criterionProcessor: CriterionProcessorImpl<TResource>(criterionHandlers: []),
                 hintProcessor: HintProcessorImpl<TResource>(hintHandlers: [])

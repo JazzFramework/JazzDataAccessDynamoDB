@@ -1,37 +1,25 @@
-import AWSClientRuntime;
 import AWSDynamoDB;
-import ClientRuntime;
 
 import JazzConfiguration;
 import JazzDataAccess;
 
 //TODO: Error Handling
 internal final class DynamoDBRepository<TResource: Storable>: Repository<TResource> {
+    private final let dynamoDbClient: DynamoDBClientProtocol;
     private final let delegate: DynamoDBRepositoryDelegate<TResource>;
     private final let criterionProcessor: CriterionProcessor<TResource>;
     private final let hintProcessor: HintProcessor<TResource>;
 
-    private final let dynamoDbClient: DynamoDBClientProtocol;
-
     internal init(
-        configuration: Configuration,
+        client: DynamoDBClientProtocol,
         delegate: DynamoDBRepositoryDelegate<TResource>,
         criterionProcessor: CriterionProcessor<TResource>,
         hintProcessor: HintProcessor<TResource>
-    ) async throws {        
-        guard let config: DynamoDBRepositoryConfig = await configuration.fetch() else {
-            throw DynamoDBErrors.missingConfig;
-        }
-
-        var dynamoDBConfig: DynamoDBClientConfigurationProtocol = try await DynamoDBClient.DynamoDBClientConfiguration();
-        dynamoDBConfig.region = config.region;
-        dynamoDBConfig.endpoint = config.endpoint;
-
+    ) async throws {
+        self.dynamoDbClient = client;
         self.delegate = delegate;
         self.criterionProcessor = criterionProcessor;
         self.hintProcessor = hintProcessor;
-
-        self.dynamoDbClient = DynamoDBClient(config: dynamoDBConfig);
 
         super.init();
     }
