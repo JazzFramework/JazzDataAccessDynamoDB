@@ -54,8 +54,8 @@ public final class DynamoDBRepositoryBuilder<TResource: Storable> {
             return try await DynamoDBRepository<TResource>(
                 client: DynamoDBClient(config: dynamoDBConfig),
                 delegate: delegate,
-                criterionProcessor: CriterionProcessorImpl<TResource>(criterionHandlers: []),
-                hintProcessor: HintProcessorImpl<TResource>(hintHandlers: [])
+                criterionProcessor: CriterionProcessorImpl<TResource>(criterionHandlers: criterionHandlers),
+                hintProcessor: HintProcessorImpl<TResource>(hintHandlers: hintHandlers)
             );
         }
 
