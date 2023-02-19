@@ -3,10 +3,12 @@ import JazzDataAccess;
 import AWSDynamoDB;
 
 public final class DynamoDBQuery<TResource: Storable>: Query<TResource> {
-    public var input: QueryInput;
+    public var input: ScanInput;
 
-    internal override init() {
-        input = QueryInput();
+    internal init(tableName: String) {
+        input = ScanInput();
+
+        input.tableName = tableName;
 
         super.init();
     }

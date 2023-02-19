@@ -23,7 +23,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/JazzFramework/Jazz.git",
       "state" : {
-        "revision" : "216cacd9a4d2d878ba732a932b22c5546604e10d",
+        "revision" : "963484ebcdb3ef8d8d69827cdf9331a6c8a78aeb",
         "version" : "0.0.8"
       }
     },

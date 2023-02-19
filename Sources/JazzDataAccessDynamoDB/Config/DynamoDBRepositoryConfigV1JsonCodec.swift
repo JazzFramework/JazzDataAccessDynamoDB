@@ -20,11 +20,13 @@ internal class DynamoDBRepositoryConfigV1JsonCodec: JsonCodec<DynamoDBRepository
     }
 
     public override func decodeJson(data: JsonObject) async -> DynamoDBRepositoryConfig? {
-        let region: JsonProperty = data["region"] as? JsonProperty ?? JsonProperty.Empty;
+        let accessKey: JsonProperty = data["accessKey"] as? JsonProperty ?? JsonProperty.Empty;
+        let secret: JsonProperty = data["secret"] as? JsonProperty ?? JsonProperty.Empty;
         let endpoint: JsonProperty = data["endpoint"] as? JsonProperty ?? JsonProperty.Empty;
 
         return DynamoDBRepositoryConfig(
-            region: region.getString(),
+            accessKey: accessKey.getString(),
+            secret: secret.getString(),
             endpoint: endpoint.getString()
         );
     }

@@ -24,14 +24,14 @@ internal final class DynamoDBRepository<TResource: Storable>: Repository<TResour
         super.init();
     }
 
-    public final override func get(for criteria: [QueryCriterion], with hints: [QueryHint]) async throws -> [TResource] {
-        let query: DynamoDBQuery<TResource> = DynamoDBQuery<TResource>();
+    public final override func get(for criteria: [QueryCriterion], with hints: [QueryHint]) async throws -> PaginationResult<TResource> {
+        let query: DynamoDBQuery<TResource> = DynamoDBQuery<TResource>(tableName: delegate.getTableName());
 
         try criterionProcessor.handle(for: query, with: criteria);
 
         try hintProcessor.handle(for: query, with: hints);
 
-        let result: QueryOutputResponse = try await dynamoDbClient.query(input: query.input);
+        let result: ScanOutputResponse = try await dynamoDbClient.scan(input: query.input);
 
         var results: [TResource] = [];
 
@@ -43,7 +43,7 @@ internal final class DynamoDBRepository<TResource: Storable>: Repository<TResour
             }
         }
 
-        return results;
+        return PaginationResult(data: results, page: 0, total: 0);
     }
 
     public final override func create(_ models: [TResource], with hints: [QueryHint]) async throws -> [TResource] {
@@ -51,21 +51,24 @@ internal final class DynamoDBRepository<TResource: Storable>: Repository<TResour
     }
 
     public final override func update(_ models: [TResource], with hints: [QueryHint]) async throws -> [TResource] {
-        var resultModels: [TResource] = [];
+        var ids: [String] = [];
 
         for batchModels in models.chunked(into: 25) {
             var items: [DynamoDBClientTypes.WriteRequest] = [];
 
             for model in batchModels {
+                ids.append(model.getId());
+
                 items.append(DynamoDBClientTypes.WriteRequest(putRequest:
                     DynamoDBClientTypes.PutRequest(item: delegate.getItemAttributes(model))
                 ));
             }
 
-            let result: BatchWriteItemOutputResponse = try await dynamoDbClient.batchWriteItem(input:
+            _ = try await dynamoDbClient.batchWriteItem(input:
                 BatchWriteItemInput(requestItems: [delegate.getTableName(): items])
             );
-
+            //TODO: handle failures
+/*
             if let itemCollectionMetrics = result.itemCollectionMetrics?[delegate.getTableName()] {
                 for itemCollection in itemCollectionMetrics {
                     if
@@ -76,13 +79,14 @@ internal final class DynamoDBRepository<TResource: Storable>: Repository<TResour
                     }
                 }
             }
+*/
         }
 
-        return resultModels;
+        return try await get(for: [IdsQueryCriterion(ids)], with: []).getData();
     }
 
     public final override func delete(for criteria: [QueryCriterion], with hints: [QueryHint]) async throws {
-        let models: [TResource] = try await get(for: criteria, with: hints);
+        let models: [TResource] = try await get(for: criteria, with: hints).getData();
 
         for batchModels in models.chunked(into: 25) {
             var items: [DynamoDBClientTypes.WriteRequest] = [];
