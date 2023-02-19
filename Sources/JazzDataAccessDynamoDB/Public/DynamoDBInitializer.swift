@@ -1,4 +1,4 @@
-import JazzCodec;
+import JazzCodec
 import JazzCore;
 import JazzConfiguration;
 

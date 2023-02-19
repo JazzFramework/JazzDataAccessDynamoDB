@@ -49,11 +49,11 @@ public final class DynamoDBRepositoryBuilder<TResource: Storable> {
 
             var dynamoDBConfig: DynamoDBClientConfigurationProtocol = try await DynamoDBClient.DynamoDBClientConfiguration();
 
-            //dynamoDBConfig.region = config.region;
-            //dynamoDBConfig.signingRegion = config.region;
+            dynamoDBConfig.region = config.region;
+            dynamoDBConfig.signingRegion = config.signingRegion;
             dynamoDBConfig.endpoint = config.endpoint;
-            //dynamoDBConfig.useFIPS = false;
-            //dynamoDBConfig.useDualStack = false;
+            dynamoDBConfig.useFIPS = config.useFIPS;
+            dynamoDBConfig.useDualStack = config.useDualStack;
             dynamoDBConfig.credentialsProvider = try AWSCredentialsProvider.fromStatic(
                 AWSCredentialsProviderStaticConfig(
                     accessKey: config.accessKey,

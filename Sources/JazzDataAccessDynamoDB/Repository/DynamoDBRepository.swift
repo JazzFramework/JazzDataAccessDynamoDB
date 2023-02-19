@@ -24,6 +24,7 @@ internal final class DynamoDBRepository<TResource: Storable>: Repository<TResour
         super.init();
     }
 
+    //TODO: use the correct call based on the passed in criterion
     public final override func get(for criteria: [QueryCriterion], with hints: [QueryHint]) async throws -> PaginationResult<TResource> {
         let query: DynamoDBQuery<TResource> = DynamoDBQuery<TResource>(tableName: delegate.getTableName());
 
@@ -31,13 +32,13 @@ internal final class DynamoDBRepository<TResource: Storable>: Repository<TResour
 
         try hintProcessor.handle(for: query, with: hints);
 
-        let result: ScanOutputResponse = try await dynamoDbClient.scan(input: query.input);
+        let result: ScanOutputResponse = try await dynamoDbClient.scan(input: ScanInput());//query.input);
 
         var results: [TResource] = [];
 
         if let items = result.items {
             for item in items {
-                if let resource = delegate.getResource(item) {
+                if let resource = delegate.fromDynamo(item) {
                     results.append(resource);
                 }
             }
@@ -60,26 +61,13 @@ internal final class DynamoDBRepository<TResource: Storable>: Repository<TResour
                 ids.append(model.getId());
 
                 items.append(DynamoDBClientTypes.WriteRequest(putRequest:
-                    DynamoDBClientTypes.PutRequest(item: delegate.getItemAttributes(model))
+                    DynamoDBClientTypes.PutRequest(item: delegate.toDynamo(model))
                 ));
             }
 
             _ = try await dynamoDbClient.batchWriteItem(input:
                 BatchWriteItemInput(requestItems: [delegate.getTableName(): items])
             );
-            //TODO: handle failures
-/*
-            if let itemCollectionMetrics = result.itemCollectionMetrics?[delegate.getTableName()] {
-                for itemCollection in itemCollectionMetrics {
-                    if
-                        let itemCollectionKey = itemCollection.itemCollectionKey,
-                        let resource = delegate.getResource(itemCollectionKey)
-                    {
-                        resultModels.append(resource);
-                    }
-                }
-            }
-*/
         }
 
         return try await get(for: [IdsQueryCriterion(ids)], with: []).getData();

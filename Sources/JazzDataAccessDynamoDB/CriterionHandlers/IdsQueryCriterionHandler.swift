@@ -8,11 +8,13 @@ internal final class IdsQueryCriterionHandler<TResource: Storable>: BaseCriterio
     }
 
     public override final func process(for query: DynamoDBQuery<TResource>, with criterion: IdsQueryCriterion) {
+        /*
         if query.input.filterExpression == nil {
             query.input.filterExpression = "id in (:a)";
             query.input.expressionAttributeValues = [
                 ":a": DynamoDBClientTypes.AttributeValue.ss(criterion.getIds())
             ];
         }
+        */
     }
 }
